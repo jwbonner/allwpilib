@@ -5,7 +5,12 @@
 package edu.wpi.first.math.kinematics;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.proto.Kinematics.ProtobufSwerveModuleState;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
 import java.util.Objects;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /** Represents the state of one swerve module. */
 public class SwerveModuleState implements Comparable<SwerveModuleState> {
@@ -82,4 +87,82 @@ public class SwerveModuleState implements Comparable<SwerveModuleState> {
       return new SwerveModuleState(desiredState.speedMetersPerSecond, desiredState.angle);
     }
   }
+
+  public static final class AStruct implements Struct<SwerveModuleState> {
+    @Override
+    public Class<SwerveModuleState> getTypeClass() {
+      return SwerveModuleState.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:SwerveModuleState";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble + Rotation2d.struct.getSize();
+    }
+
+    @Override
+    public String getSchema() {
+      return "double speed;Rotation2d angle";
+    }
+
+    @Override
+    public Struct<?>[] getNested() {
+      return new Struct<?>[] {Rotation2d.struct};
+    }
+
+    @Override
+    public SwerveModuleState unpack(ByteBuffer bb) {
+      double speed = bb.getDouble();
+      Rotation2d angle = Rotation2d.struct.unpack(bb);
+      return new SwerveModuleState(speed, angle);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, SwerveModuleState value) {
+      bb.putDouble(value.speedMetersPerSecond);
+      Rotation2d.struct.pack(bb, value.angle);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto
+      implements Protobuf<SwerveModuleState, ProtobufSwerveModuleState> {
+    @Override
+    public Class<SwerveModuleState> getTypeClass() {
+      return SwerveModuleState.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufSwerveModuleState.getDescriptor();
+    }
+
+    @Override
+    public Protobuf<?, ?>[] getNested() {
+      return new Protobuf<?, ?>[] {Rotation2d.proto};
+    }
+
+    @Override
+    public ProtobufSwerveModuleState createMessage() {
+      return ProtobufSwerveModuleState.newInstance();
+    }
+
+    @Override
+    public SwerveModuleState unpack(ProtobufSwerveModuleState msg) {
+      return new SwerveModuleState(msg.getSpeed(), Rotation2d.proto.unpack(msg.getAngle()));
+    }
+
+    @Override
+    public void pack(ProtobufSwerveModuleState msg, SwerveModuleState value) {
+      msg.setSpeed(value.speedMetersPerSecond);
+      Rotation2d.proto.pack(msg.getMutableAngle(), value.angle);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

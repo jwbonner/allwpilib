@@ -6,7 +6,12 @@ package edu.wpi.first.math.controller;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.proto.Controller.ProtobufElevatorFeedforward;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /**
  * A helper class that computes feedforward outputs for a simple elevator (modeled as a motor acting
@@ -170,4 +175,75 @@ public class ElevatorFeedforward {
   public double minAchievableAcceleration(double maxVoltage, double velocity) {
     return maxAchievableAcceleration(-maxVoltage, velocity);
   }
+
+  public static final class AStruct implements Struct<ElevatorFeedforward> {
+    @Override
+    public Class<ElevatorFeedforward> getTypeClass() {
+      return ElevatorFeedforward.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:ElevatorFeedforward";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble * 4;
+    }
+
+    @Override
+    public String getSchema() {
+      return "double ks;double kg;double kv;double ka";
+    }
+
+    @Override
+    public ElevatorFeedforward unpack(ByteBuffer bb) {
+      double ks = bb.getDouble();
+      double kg = bb.getDouble();
+      double kv = bb.getDouble();
+      double ka = bb.getDouble();
+      return new ElevatorFeedforward(ks, kg, kv, ka);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, ElevatorFeedforward value) {
+      bb.putDouble(value.ks);
+      bb.putDouble(value.kg);
+      bb.putDouble(value.kv);
+      bb.putDouble(value.ka);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto
+      implements Protobuf<ElevatorFeedforward, ProtobufElevatorFeedforward> {
+    @Override
+    public Class<ElevatorFeedforward> getTypeClass() {
+      return ElevatorFeedforward.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufElevatorFeedforward.getDescriptor();
+    }
+
+    @Override
+    public ProtobufElevatorFeedforward createMessage() {
+      return ProtobufElevatorFeedforward.newInstance();
+    }
+
+    @Override
+    public ElevatorFeedforward unpack(ProtobufElevatorFeedforward msg) {
+      return new ElevatorFeedforward(msg.getKs(), msg.getKg(), msg.getKv(), msg.getKa());
+    }
+
+    @Override
+    public void pack(ProtobufElevatorFeedforward msg, ElevatorFeedforward value) {
+      msg.setKs(value.ks).setKg(value.kg).setKv(value.kv).setKa(value.ka);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

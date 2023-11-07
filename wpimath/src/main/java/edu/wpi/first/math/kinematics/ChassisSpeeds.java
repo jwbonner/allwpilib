@@ -7,6 +7,11 @@ package edu.wpi.first.math.kinematics;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.proto.Kinematics.ProtobufChassisSpeeds;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /**
  * Represents the speed of a robot chassis. Although this class contains similar members compared to
@@ -263,4 +268,74 @@ public class ChassisSpeeds {
         "ChassisSpeeds(Vx: %.2f m/s, Vy: %.2f m/s, Omega: %.2f rad/s)",
         vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond);
   }
+
+  public static final class AStruct implements Struct<ChassisSpeeds> {
+    @Override
+    public Class<ChassisSpeeds> getTypeClass() {
+      return ChassisSpeeds.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:ChassisSpeeds";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble * 3;
+    }
+
+    @Override
+    public String getSchema() {
+      return "double vx;double vy;double omega";
+    }
+
+    @Override
+    public ChassisSpeeds unpack(ByteBuffer bb) {
+      double vx = bb.getDouble();
+      double vy = bb.getDouble();
+      double omega = bb.getDouble();
+      return new ChassisSpeeds(vx, vy, omega);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, ChassisSpeeds value) {
+      bb.putDouble(value.vxMetersPerSecond);
+      bb.putDouble(value.vyMetersPerSecond);
+      bb.putDouble(value.omegaRadiansPerSecond);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto implements Protobuf<ChassisSpeeds, ProtobufChassisSpeeds> {
+    @Override
+    public Class<ChassisSpeeds> getTypeClass() {
+      return ChassisSpeeds.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufChassisSpeeds.getDescriptor();
+    }
+
+    @Override
+    public ProtobufChassisSpeeds createMessage() {
+      return ProtobufChassisSpeeds.newInstance();
+    }
+
+    @Override
+    public ChassisSpeeds unpack(ProtobufChassisSpeeds msg) {
+      return new ChassisSpeeds(msg.getVx(), msg.getVy(), msg.getOmega());
+    }
+
+    @Override
+    public void pack(ProtobufChassisSpeeds msg, ChassisSpeeds value) {
+      msg.setVx(value.vxMetersPerSecond)
+          .setVy(value.vyMetersPerSecond)
+          .setOmega(value.omegaRadiansPerSecond);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

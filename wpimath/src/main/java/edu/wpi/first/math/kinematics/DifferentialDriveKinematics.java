@@ -7,6 +7,11 @@ package edu.wpi.first.math.kinematics;
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUsageId;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.proto.Kinematics.ProtobufDifferentialDriveKinematics;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /**
  * Helper class that converts a chassis velocity (dx and dtheta components) to left and right wheel
@@ -83,4 +88,68 @@ public class DifferentialDriveKinematics
         0,
         (rightDistanceMeters - leftDistanceMeters) / trackWidthMeters);
   }
+
+  public static final class AStruct implements Struct<DifferentialDriveKinematics> {
+    @Override
+    public Class<DifferentialDriveKinematics> getTypeClass() {
+      return DifferentialDriveKinematics.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:DifferentialDriveKinematics";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble;
+    }
+
+    @Override
+    public String getSchema() {
+      return "double track_width";
+    }
+
+    @Override
+    public DifferentialDriveKinematics unpack(ByteBuffer bb) {
+      return new DifferentialDriveKinematics(bb.getDouble());
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, DifferentialDriveKinematics value) {
+      bb.putDouble(value.trackWidthMeters);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto
+      implements Protobuf<DifferentialDriveKinematics, ProtobufDifferentialDriveKinematics> {
+    @Override
+    public Class<DifferentialDriveKinematics> getTypeClass() {
+      return DifferentialDriveKinematics.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufDifferentialDriveKinematics.getDescriptor();
+    }
+
+    @Override
+    public ProtobufDifferentialDriveKinematics createMessage() {
+      return ProtobufDifferentialDriveKinematics.newInstance();
+    }
+
+    @Override
+    public DifferentialDriveKinematics unpack(ProtobufDifferentialDriveKinematics msg) {
+      return new DifferentialDriveKinematics(msg.getTrackWidth());
+    }
+
+    @Override
+    public void pack(ProtobufDifferentialDriveKinematics msg, DifferentialDriveKinematics value) {
+      msg.setTrackWidth(value.trackWidthMeters);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

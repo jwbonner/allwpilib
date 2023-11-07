@@ -7,10 +7,17 @@ package edu.wpi.first.math.trajectory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.proto.Kinematics.ProtobufSwerveModuleState;
+import edu.wpi.first.math.proto.Trajectory.ProtobufTrajectory;
+import edu.wpi.first.math.proto.Trajectory.ProtobufTrajectoryState;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /**
  * Represents a time-parameterized trajectory. The trajectory contains of various States that
@@ -396,6 +403,97 @@ public class Trajectory {
           poseMeters,
           curvatureRadPerMeter);
     }
+
+    public static final class AStruct implements Struct<State> {
+      @Override
+      public Class<State> getTypeClass() {
+        return State.class;
+      }
+
+      @Override
+      public String getTypeString() {
+        return "struct:TrajectoryState";
+      }
+
+      @Override
+      public int getSize() {
+        return kSizeDouble * 4 + Pose2d.struct.getSize();
+      }
+
+      @Override
+      public String getSchema() {
+        return "double time;double velocity;double acceleration;Pose2d pose;double curvature";
+      }
+
+      @Override
+      public Struct<?>[] getNested() {
+        return new Struct<?>[] {Pose2d.struct};
+      }
+
+      @Override
+      public State unpack(ByteBuffer bb) {
+        double time = bb.getDouble();
+        double velocity = bb.getDouble();
+        double acceleration = bb.getDouble();
+        Pose2d pose = Pose2d.struct.unpack(bb);
+        double curvature = bb.getDouble();
+        return new State(time, velocity, acceleration, pose, curvature);
+      }
+
+      @Override
+      public void pack(ByteBuffer bb, State value) {
+        bb.putDouble(value.timeSeconds);
+        bb.putDouble(value.velocityMetersPerSecond);
+        bb.putDouble(value.accelerationMetersPerSecondSq);
+        Pose2d.struct.pack(bb, value.poseMeters);
+        bb.putDouble(value.curvatureRadPerMeter);
+      }
+    }
+
+    public static final AStruct struct = new AStruct();
+
+    public static final class AProto implements Protobuf<State, ProtobufTrajectoryState> {
+      @Override
+      public Class<State> getTypeClass() {
+        return State.class;
+      }
+
+      @Override
+      public Descriptor getDescriptor() {
+        return ProtobufSwerveModuleState.getDescriptor();
+      }
+
+      @Override
+      public Protobuf<?, ?>[] getNested() {
+        return new Protobuf<?, ?>[] {Pose2d.proto};
+      }
+
+      @Override
+      public ProtobufTrajectoryState createMessage() {
+        return ProtobufTrajectoryState.newInstance();
+      }
+
+      @Override
+      public State unpack(ProtobufTrajectoryState msg) {
+        return new State(
+            msg.getTime(),
+            msg.getVelocity(),
+            msg.getAcceleration(),
+            Pose2d.proto.unpack(msg.getPose()),
+            msg.getCurvature());
+      }
+
+      @Override
+      public void pack(ProtobufTrajectoryState msg, State value) {
+        msg.setTime(value.timeSeconds);
+        msg.setVelocity(value.velocityMetersPerSecond);
+        msg.setAcceleration(value.accelerationMetersPerSecondSq);
+        Pose2d.proto.pack(msg.getPose(), value.poseMeters);
+        msg.setCurvature(value.curvatureRadPerMeter);
+      }
+    }
+
+    public static final AProto proto = new AProto();
   }
 
   @Override
@@ -413,4 +511,42 @@ public class Trajectory {
   public boolean equals(Object obj) {
     return obj instanceof Trajectory && m_states.equals(((Trajectory) obj).getStates());
   }
+
+  public static final class AProto implements Protobuf<Trajectory, ProtobufTrajectory> {
+    @Override
+    public Class<Trajectory> getTypeClass() {
+      return Trajectory.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufTrajectory.getDescriptor();
+    }
+
+    @Override
+    public ProtobufTrajectory createMessage() {
+      return ProtobufTrajectory.newInstance();
+    }
+
+    @Override
+    public Trajectory unpack(ProtobufTrajectory msg) {
+      List<State> states = new ArrayList<>(msg.getStates().length());
+      for (int i = 0; i < states.size(); i++) {
+        states.add(State.proto.unpack(msg.getStates().get(i)));
+      }
+      return new Trajectory(states);
+    }
+
+    @Override
+    public void pack(ProtobufTrajectory msg, Trajectory value) {
+      msg.setTotalTime(value.m_totalTimeSeconds);
+      ProtobufTrajectoryState[] states = new ProtobufTrajectoryState[value.m_states.size()];
+      for (int i = 0; i < states.length; i++) {
+        State.proto.pack(states[i], value.m_states.get(i));
+      }
+      msg.getMutableStates().addAll(states);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

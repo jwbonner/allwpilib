@@ -4,11 +4,18 @@
 
 package edu.wpi.first.math.spline;
 
+import edu.wpi.first.math.proto.Spline.ProtobufCubicHermiteSpline;
+import edu.wpi.first.util.protobuf.Protobuf;
 import org.ejml.simple.SimpleMatrix;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 public class CubicHermiteSpline extends Spline {
   private static SimpleMatrix hermiteBasis;
   private final SimpleMatrix m_coefficients;
+  private final double[] m_xInitialControlVector;
+  private final double[] m_xFinalControlVector;
+  private final double[] m_yInitialControlVector;
+  private final double[] m_yFinalControlVector;
 
   /**
    * Constructs a cubic hermite spline with the specified control vectors. Each control vector
@@ -25,6 +32,10 @@ public class CubicHermiteSpline extends Spline {
       double[] yInitialControlVector,
       double[] yFinalControlVector) {
     super(3);
+    m_xInitialControlVector = xInitialControlVector;
+    m_xFinalControlVector = xFinalControlVector;
+    m_yInitialControlVector = yInitialControlVector;
+    m_yFinalControlVector = yFinalControlVector;
 
     // Populate the coefficients for the actual spline equations.
     // Row 0 is x coefficients
@@ -133,4 +144,42 @@ public class CubicHermiteSpline extends Spline {
           finalVector[0], finalVector[1]
         });
   }
+
+  public static final class AProto
+      implements Protobuf<CubicHermiteSpline, ProtobufCubicHermiteSpline> {
+    @Override
+    public Class<CubicHermiteSpline> getTypeClass() {
+      return CubicHermiteSpline.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufCubicHermiteSpline.getDescriptor();
+    }
+
+    @Override
+    public ProtobufCubicHermiteSpline createMessage() {
+      return ProtobufCubicHermiteSpline.newInstance();
+    }
+
+    @Override
+    public CubicHermiteSpline unpack(ProtobufCubicHermiteSpline msg) {
+      double[] xInitialControlVector = msg.getXInitial().array();
+      double[] xFinalControlVector = msg.getXFinal().array();
+      double[] yInitialControlVector = msg.getYInitial().array();
+      double[] yFinalControlVector = msg.getYFinal().array();
+      return new CubicHermiteSpline(
+          xInitialControlVector, xFinalControlVector, yInitialControlVector, yFinalControlVector);
+    }
+
+    @Override
+    public void pack(ProtobufCubicHermiteSpline msg, CubicHermiteSpline value) {
+      msg.getMutableXInitial().setInternalArray(value.m_xInitialControlVector);
+      msg.getMutableXFinal().setInternalArray(value.m_xFinalControlVector);
+      msg.getMutableYInitial().setInternalArray(value.m_yInitialControlVector);
+      msg.getMutableYFinal().setInternalArray(value.m_yFinalControlVector);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

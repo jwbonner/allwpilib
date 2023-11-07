@@ -4,6 +4,12 @@
 
 package edu.wpi.first.math.kinematics;
 
+import edu.wpi.first.math.proto.Kinematics.ProtobufDifferentialDriveWheelSpeeds;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
+import us.hebi.quickbuf.Descriptors.Descriptor;
+
 /** Represents the wheel speeds for a differential drive drivetrain. */
 public class DifferentialDriveWheelSpeeds {
   /** Speed of the left side of the robot. */
@@ -123,4 +129,71 @@ public class DifferentialDriveWheelSpeeds {
         "DifferentialDriveWheelSpeeds(Left: %.2f m/s, Right: %.2f m/s)",
         leftMetersPerSecond, rightMetersPerSecond);
   }
+
+  public static final class AStruct implements Struct<DifferentialDriveWheelSpeeds> {
+    @Override
+    public Class<DifferentialDriveWheelSpeeds> getTypeClass() {
+      return DifferentialDriveWheelSpeeds.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:DifferentialDriveWheelSpeeds";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble * 2;
+    }
+
+    @Override
+    public String getSchema() {
+      return "double left;double right";
+    }
+
+    @Override
+    public DifferentialDriveWheelSpeeds unpack(ByteBuffer bb) {
+      double left = bb.getDouble();
+      double right = bb.getDouble();
+      return new DifferentialDriveWheelSpeeds(left, right);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, DifferentialDriveWheelSpeeds value) {
+      bb.putDouble(value.leftMetersPerSecond);
+      bb.putDouble(value.rightMetersPerSecond);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto
+      implements Protobuf<DifferentialDriveWheelSpeeds, ProtobufDifferentialDriveWheelSpeeds> {
+    @Override
+    public Class<DifferentialDriveWheelSpeeds> getTypeClass() {
+      return DifferentialDriveWheelSpeeds.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufDifferentialDriveWheelSpeeds.getDescriptor();
+    }
+
+    @Override
+    public ProtobufDifferentialDriveWheelSpeeds createMessage() {
+      return ProtobufDifferentialDriveWheelSpeeds.newInstance();
+    }
+
+    @Override
+    public DifferentialDriveWheelSpeeds unpack(ProtobufDifferentialDriveWheelSpeeds msg) {
+      return new DifferentialDriveWheelSpeeds(msg.getLeft(), msg.getRight());
+    }
+
+    @Override
+    public void pack(ProtobufDifferentialDriveWheelSpeeds msg, DifferentialDriveWheelSpeeds value) {
+      msg.setLeft(value.leftMetersPerSecond).setRight(value.rightMetersPerSecond);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

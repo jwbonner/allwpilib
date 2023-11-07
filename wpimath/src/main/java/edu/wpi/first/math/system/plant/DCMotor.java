@@ -4,7 +4,12 @@
 
 package edu.wpi.first.math.system.plant;
 
+import edu.wpi.first.math.proto.Plant.ProtobufDCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /** Holds the constants for a DC motor. */
 public class DCMotor {
@@ -286,4 +291,88 @@ public class DCMotor {
     return new DCMotor(
         12, 3.60, 211, 3.6, Units.rotationsPerMinuteToRadiansPerSecond(6784), numMotors);
   }
+
+  public static final class AStruct implements Struct<DCMotor> {
+    @Override
+    public Class<DCMotor> getTypeClass() {
+      return DCMotor.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:DCMotor";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble * 8;
+    }
+
+    @Override
+    public String getSchema() {
+      return "double nominal_voltage;double stall_torque;double stall_current;double free_current;double free_speed;double r;double kv;double kt";
+    }
+
+    @Override
+    public DCMotor unpack(ByteBuffer bb) {
+      return new DCMotor(
+          bb.getDouble(), bb.getDouble(), bb.getDouble(), bb.getDouble(), bb.getDouble(), 1);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, DCMotor value) {
+      bb.putDouble(value.nominalVoltageVolts);
+      bb.putDouble(value.stallTorqueNewtonMeters);
+      bb.putDouble(value.stallCurrentAmps);
+      bb.putDouble(value.freeCurrentAmps);
+      bb.putDouble(value.freeSpeedRadPerSec);
+      bb.putDouble(value.rOhms);
+      bb.putDouble(value.KvRadPerSecPerVolt);
+      bb.putDouble(value.KtNMPerAmp);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto implements Protobuf<DCMotor, ProtobufDCMotor> {
+    @Override
+    public Class<DCMotor> getTypeClass() {
+      return DCMotor.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufDCMotor.getDescriptor();
+    }
+
+    @Override
+    public ProtobufDCMotor createMessage() {
+      return ProtobufDCMotor.newInstance();
+    }
+
+    @Override
+    public DCMotor unpack(ProtobufDCMotor msg) {
+      return new DCMotor(
+          msg.getNominalVoltage(),
+          msg.getStallTorque(),
+          msg.getStallCurrent(),
+          msg.getFreeCurrent(),
+          msg.getFreeSpeed(),
+          1);
+    }
+
+    @Override
+    public void pack(ProtobufDCMotor msg, DCMotor value) {
+      msg.setNominalVoltage(value.nominalVoltageVolts)
+          .setStallTorque(value.stallTorqueNewtonMeters)
+          .setStallCurrent(value.stallCurrentAmps)
+          .setFreeCurrent(value.freeCurrentAmps)
+          .setFreeSpeed(value.freeSpeedRadPerSec)
+          .setR(value.rOhms)
+          .setKv(value.KvRadPerSecPerVolt)
+          .setKt(value.KtNMPerAmp);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

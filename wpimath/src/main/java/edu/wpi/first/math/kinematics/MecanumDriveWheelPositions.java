@@ -5,7 +5,12 @@
 package edu.wpi.first.math.kinematics;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.proto.Kinematics.ProtobufMecanumDriveWheelPositions;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
 import java.util.Objects;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 public class MecanumDriveWheelPositions implements WheelPositions<MecanumDriveWheelPositions> {
   /** Distance measured by the front left wheel. */
@@ -81,4 +86,79 @@ public class MecanumDriveWheelPositions implements WheelPositions<MecanumDriveWh
         MathUtil.interpolate(this.rearLeftMeters, endValue.rearLeftMeters, t),
         MathUtil.interpolate(this.rearRightMeters, endValue.rearRightMeters, t));
   }
+
+  public static final class AStruct implements Struct<MecanumDriveWheelPositions> {
+    @Override
+    public Class<MecanumDriveWheelPositions> getTypeClass() {
+      return MecanumDriveWheelPositions.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:MecanumDriveWheelPositions";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble * 4;
+    }
+
+    @Override
+    public String getSchema() {
+      return "double front_left;double front_right;double rear_left;double rear_right";
+    }
+
+    @Override
+    public MecanumDriveWheelPositions unpack(ByteBuffer bb) {
+      double frontLeft = bb.getDouble();
+      double frontRight = bb.getDouble();
+      double rearLeft = bb.getDouble();
+      double rearRight = bb.getDouble();
+      return new MecanumDriveWheelPositions(frontLeft, frontRight, rearLeft, rearRight);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, MecanumDriveWheelPositions value) {
+      bb.putDouble(value.frontLeftMeters);
+      bb.putDouble(value.frontRightMeters);
+      bb.putDouble(value.rearLeftMeters);
+      bb.putDouble(value.rearRightMeters);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto
+      implements Protobuf<MecanumDriveWheelPositions, ProtobufMecanumDriveWheelPositions> {
+    @Override
+    public Class<MecanumDriveWheelPositions> getTypeClass() {
+      return MecanumDriveWheelPositions.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufMecanumDriveWheelPositions.getDescriptor();
+    }
+
+    @Override
+    public ProtobufMecanumDriveWheelPositions createMessage() {
+      return ProtobufMecanumDriveWheelPositions.newInstance();
+    }
+
+    @Override
+    public MecanumDriveWheelPositions unpack(ProtobufMecanumDriveWheelPositions msg) {
+      return new MecanumDriveWheelPositions(
+          msg.getFrontLeft(), msg.getFrontRight(), msg.getRearLeft(), msg.getRearRight());
+    }
+
+    @Override
+    public void pack(ProtobufMecanumDriveWheelPositions msg, MecanumDriveWheelPositions value) {
+      msg.setFrontLeft(value.frontLeftMeters)
+          .setFrontRight(value.frontRightMeters)
+          .setRearLeft(value.rearLeftMeters)
+          .setRearRight(value.rearRightMeters);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

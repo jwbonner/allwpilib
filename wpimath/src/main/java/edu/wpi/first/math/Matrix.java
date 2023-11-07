@@ -5,6 +5,8 @@
 package edu.wpi.first.math;
 
 import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.proto.Wpimath.ProtobufMatrix;
+import edu.wpi.first.util.protobuf.Protobuf;
 import java.util.Objects;
 import org.ejml.MatrixDimensionException;
 import org.ejml.data.DMatrixRMaj;
@@ -14,6 +16,7 @@ import org.ejml.dense.row.NormOps_DDRM;
 import org.ejml.dense.row.factory.DecompositionFactory_DDRM;
 import org.ejml.interfaces.decomposition.CholeskyDecomposition_F64;
 import org.ejml.simple.SimpleMatrix;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /**
  * A shape-safe wrapper over Efficient Java Matrix Library (EJML) matrices.
@@ -759,4 +762,39 @@ public class Matrix<R extends Num, C extends Num> {
   public int hashCode() {
     return Objects.hash(m_storage);
   }
+
+  @SuppressWarnings("rawtypes")
+  public static final class AProto implements Protobuf<Matrix, ProtobufMatrix> {
+    @Override
+    public Class<Matrix> getTypeClass() {
+      return Matrix.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufMatrix.getDescriptor();
+    }
+
+    @Override
+    public ProtobufMatrix createMessage() {
+      return ProtobufMatrix.newInstance();
+    }
+
+    @Override
+    public Matrix unpack(ProtobufMatrix msg) {
+      SimpleMatrix storage =
+          new SimpleMatrix(msg.getNumRows(), msg.getNumCols(), true, msg.getData().array());
+      return new Matrix(storage);
+    }
+
+    @Override
+    public void pack(ProtobufMatrix msg, Matrix value) {
+      msg.setNumCols(value.m_storage.getNumCols()).setNumRows(value.m_storage.getNumRows());
+      var newMatrix = value.m_storage.copy();
+      newMatrix.reshape(1, value.m_storage.getNumElements());
+      msg.getMutableData().setInternalArray(newMatrix.toArray2()[0]);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

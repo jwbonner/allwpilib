@@ -8,7 +8,12 @@ import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUsageId;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.proto.Kinematics.ProtobufMecanumDriveKinematics;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
 import org.ejml.simple.SimpleMatrix;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /**
  * Helper class that converts a chassis velocity (dx, dy, and dtheta components) into individual
@@ -207,4 +212,92 @@ public class MecanumDriveKinematics
     m_inverseKinematics.setRow(2, 0, 1, 1, rl.getX() - rl.getY());
     m_inverseKinematics.setRow(3, 0, 1, -1, -(rr.getX() + rr.getY()));
   }
+
+  public static final class AStruct implements Struct<MecanumDriveKinematics> {
+    @Override
+    public Class<MecanumDriveKinematics> getTypeClass() {
+      return MecanumDriveKinematics.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:MecanumDriveKinematics";
+    }
+
+    @Override
+    public int getSize() {
+      return Translation2d.struct.getSize() * 4;
+    }
+
+    @Override
+    public String getSchema() {
+      return "Translation2d front_left;Translation2d front_right;Translation2d rear_left;Translation2d rear_right";
+    }
+
+    @Override
+    public Struct<?>[] getNested() {
+      return new Struct<?>[] {Translation2d.struct};
+    }
+
+    @Override
+    public MecanumDriveKinematics unpack(ByteBuffer bb) {
+      Translation2d frontLeft = Translation2d.struct.unpack(bb);
+      Translation2d frontRight = Translation2d.struct.unpack(bb);
+      Translation2d rearLeft = Translation2d.struct.unpack(bb);
+      Translation2d rearRight = Translation2d.struct.unpack(bb);
+      return new MecanumDriveKinematics(frontLeft, frontRight, rearLeft, rearRight);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, MecanumDriveKinematics value) {
+      Translation2d.struct.pack(bb, value.m_frontLeftWheelMeters);
+      Translation2d.struct.pack(bb, value.m_frontRightWheelMeters);
+      Translation2d.struct.pack(bb, value.m_rearLeftWheelMeters);
+      Translation2d.struct.pack(bb, value.m_rearRightWheelMeters);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto
+      implements Protobuf<MecanumDriveKinematics, ProtobufMecanumDriveKinematics> {
+    @Override
+    public Class<MecanumDriveKinematics> getTypeClass() {
+      return MecanumDriveKinematics.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufMecanumDriveKinematics.getDescriptor();
+    }
+
+    @Override
+    public Protobuf<?, ?>[] getNested() {
+      return new Protobuf<?, ?>[] {Translation2d.proto};
+    }
+
+    @Override
+    public ProtobufMecanumDriveKinematics createMessage() {
+      return ProtobufMecanumDriveKinematics.newInstance();
+    }
+
+    @Override
+    public MecanumDriveKinematics unpack(ProtobufMecanumDriveKinematics msg) {
+      return new MecanumDriveKinematics(
+          Translation2d.proto.unpack(msg.getFrontLeft()),
+          Translation2d.proto.unpack(msg.getFrontRight()),
+          Translation2d.proto.unpack(msg.getRearLeft()),
+          Translation2d.proto.unpack(msg.getRearRight()));
+    }
+
+    @Override
+    public void pack(ProtobufMecanumDriveKinematics msg, MecanumDriveKinematics value) {
+      Translation2d.proto.pack(msg.getMutableFrontLeft(), value.m_frontLeftWheelMeters);
+      Translation2d.proto.pack(msg.getMutableFrontRight(), value.m_frontRightWheelMeters);
+      Translation2d.proto.pack(msg.getMutableRearLeft(), value.m_rearLeftWheelMeters);
+      Translation2d.proto.pack(msg.getMutableRearRight(), value.m_rearRightWheelMeters);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

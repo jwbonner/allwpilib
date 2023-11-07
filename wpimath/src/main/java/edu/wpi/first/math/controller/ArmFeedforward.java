@@ -4,6 +4,12 @@
 
 package edu.wpi.first.math.controller;
 
+import edu.wpi.first.math.proto.Controller.ProtobufArmFeedforward;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
+import us.hebi.quickbuf.Descriptors.Descriptor;
+
 /**
  * A helper class that computes feedforward outputs for a simple arm (modeled as a motor acting
  * against the force of gravity on a beam suspended at an angle).
@@ -146,4 +152,74 @@ public class ArmFeedforward {
   public double minAchievableAcceleration(double maxVoltage, double angle, double velocity) {
     return maxAchievableAcceleration(-maxVoltage, angle, velocity);
   }
+
+  public static final class AStruct implements Struct<ArmFeedforward> {
+    @Override
+    public Class<ArmFeedforward> getTypeClass() {
+      return ArmFeedforward.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:ArmFeedForward";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble * 4;
+    }
+
+    @Override
+    public String getSchema() {
+      return "double ks;double kg;double kv;double ka";
+    }
+
+    @Override
+    public ArmFeedforward unpack(ByteBuffer bb) {
+      double ks = bb.getDouble();
+      double kg = bb.getDouble();
+      double kv = bb.getDouble();
+      double ka = bb.getDouble();
+      return new ArmFeedforward(ks, kg, kv, ka);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, ArmFeedforward value) {
+      bb.putDouble(value.ks);
+      bb.putDouble(value.kg);
+      bb.putDouble(value.kv);
+      bb.putDouble(value.ka);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto implements Protobuf<ArmFeedforward, ProtobufArmFeedforward> {
+    @Override
+    public Class<ArmFeedforward> getTypeClass() {
+      return ArmFeedforward.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufArmFeedforward.getDescriptor();
+    }
+
+    @Override
+    public ProtobufArmFeedforward createMessage() {
+      return ProtobufArmFeedforward.newInstance();
+    }
+
+    @Override
+    public ArmFeedforward unpack(ProtobufArmFeedforward msg) {
+      return new ArmFeedforward(msg.getKs(), msg.getKg(), msg.getKv(), msg.getKa());
+    }
+
+    @Override
+    public void pack(ProtobufArmFeedforward msg, ArmFeedforward value) {
+      msg.setKs(value.ks).setKg(value.kg).setKv(value.kv).setKa(value.ka);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

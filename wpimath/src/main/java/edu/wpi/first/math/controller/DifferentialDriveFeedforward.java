@@ -6,8 +6,11 @@ package edu.wpi.first.math.controller;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.proto.Controller.ProtobufDifferentialDriveFeedforward;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.util.protobuf.Protobuf;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /** A helper class which computes the feedforward outputs for a differential drive drivetrain. */
 public class DifferentialDriveFeedforward {
@@ -44,6 +47,15 @@ public class DifferentialDriveFeedforward {
   }
 
   /**
+   * Creates a new DifferentialDriveFeedforward from a plant.
+   *
+   * @param plant The plant.
+   */
+  private DifferentialDriveFeedforward(LinearSystem<N2, N2, N2> plant) {
+    m_plant = plant;
+  }
+
+  /**
    * Calculates the differential drive feedforward inputs given velocity setpoints.
    *
    * @param currentLeftVelocity The current left velocity of the differential drive in
@@ -67,4 +79,36 @@ public class DifferentialDriveFeedforward {
     var u = feedforward.calculate(r, nextR);
     return new DifferentialDriveWheelVoltages(u.get(0, 0), u.get(1, 0));
   }
+
+  public static final class AProto
+      implements Protobuf<DifferentialDriveFeedforward, ProtobufDifferentialDriveFeedforward> {
+    @Override
+    public Class<DifferentialDriveFeedforward> getTypeClass() {
+      return DifferentialDriveFeedforward.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufDifferentialDriveFeedforward.getDescriptor();
+    }
+
+    @Override
+    public ProtobufDifferentialDriveFeedforward createMessage() {
+      return ProtobufDifferentialDriveFeedforward.newInstance();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public DifferentialDriveFeedforward unpack(ProtobufDifferentialDriveFeedforward msg) {
+      LinearSystem<N2, N2, N2> plant = LinearSystem.proto.unpack(msg.getPlant());
+      return new DifferentialDriveFeedforward(plant);
+    }
+
+    @Override
+    public void pack(ProtobufDifferentialDriveFeedforward msg, DifferentialDriveFeedforward value) {
+      LinearSystem.proto.pack(msg.getMutablePlant(), value.m_plant);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

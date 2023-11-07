@@ -4,7 +4,12 @@
 
 package edu.wpi.first.math.kinematics;
 
+import edu.wpi.first.math.proto.Kinematics.ProtobufMecanumDriveWheelSpeeds;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
 import java.util.stream.DoubleStream;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 public class MecanumDriveWheelSpeeds {
   /** Speed of the front left wheel. */
@@ -166,4 +171,79 @@ public class MecanumDriveWheelSpeeds {
         rearLeftMetersPerSecond,
         rearRightMetersPerSecond);
   }
+
+  public static final class AStruct implements Struct<MecanumDriveWheelSpeeds> {
+    @Override
+    public Class<MecanumDriveWheelSpeeds> getTypeClass() {
+      return MecanumDriveWheelSpeeds.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:MecanumDriveWheelSpeeds";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble * 4;
+    }
+
+    @Override
+    public String getSchema() {
+      return "double front_left;double front_right;double rear_left;double rear_right";
+    }
+
+    @Override
+    public MecanumDriveWheelSpeeds unpack(ByteBuffer bb) {
+      double frontLeft = bb.getDouble();
+      double frontRight = bb.getDouble();
+      double rearLeft = bb.getDouble();
+      double rearRight = bb.getDouble();
+      return new MecanumDriveWheelSpeeds(frontLeft, frontRight, rearLeft, rearRight);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, MecanumDriveWheelSpeeds value) {
+      bb.putDouble(value.frontLeftMetersPerSecond);
+      bb.putDouble(value.frontRightMetersPerSecond);
+      bb.putDouble(value.rearLeftMetersPerSecond);
+      bb.putDouble(value.rearRightMetersPerSecond);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto
+      implements Protobuf<MecanumDriveWheelSpeeds, ProtobufMecanumDriveWheelSpeeds> {
+    @Override
+    public Class<MecanumDriveWheelSpeeds> getTypeClass() {
+      return MecanumDriveWheelSpeeds.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufMecanumDriveWheelSpeeds.getDescriptor();
+    }
+
+    @Override
+    public ProtobufMecanumDriveWheelSpeeds createMessage() {
+      return ProtobufMecanumDriveWheelSpeeds.newInstance();
+    }
+
+    @Override
+    public MecanumDriveWheelSpeeds unpack(ProtobufMecanumDriveWheelSpeeds msg) {
+      return new MecanumDriveWheelSpeeds(
+          msg.getFrontLeft(), msg.getFrontRight(), msg.getRearLeft(), msg.getRearRight());
+    }
+
+    @Override
+    public void pack(ProtobufMecanumDriveWheelSpeeds msg, MecanumDriveWheelSpeeds value) {
+      msg.setFrontLeft(value.frontLeftMetersPerSecond)
+          .setFrontRight(value.frontRightMetersPerSecond)
+          .setRearLeft(value.rearLeftMetersPerSecond)
+          .setRearRight(value.rearRightMetersPerSecond);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

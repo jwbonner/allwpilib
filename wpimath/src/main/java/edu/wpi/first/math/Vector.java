@@ -5,8 +5,11 @@
 package edu.wpi.first.math;
 
 import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.proto.Wpimath.ProtobufVector;
+import edu.wpi.first.util.protobuf.Protobuf;
 import java.util.Objects;
 import org.ejml.simple.SimpleMatrix;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /**
  * A shape-safe wrapper over Efficient Java Matrix Library (EJML) matrices.
@@ -113,4 +116,38 @@ public class Vector<R extends Num> extends Matrix<R, N1> {
 
     return Math.sqrt(squaredNorm);
   }
+
+  @SuppressWarnings("rawtypes")
+  public static final class AProto implements Protobuf<Vector, ProtobufVector> {
+    @Override
+    public Class<Vector> getTypeClass() {
+      return Vector.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufVector.getDescriptor();
+    }
+
+    @Override
+    public ProtobufVector createMessage() {
+      return ProtobufVector.newInstance();
+    }
+
+    @Override
+    public Vector unpack(ProtobufVector msg) {
+      SimpleMatrix storage =
+          new SimpleMatrix(msg.getRows().length(), 1, true, msg.getRows().array());
+      return new Vector(storage);
+    }
+
+    @Override
+    public void pack(ProtobufVector msg, Vector value) {
+      var newMatrix = value.m_storage.copy();
+      newMatrix.reshape(1, value.m_storage.getNumElements());
+      msg.getMutableRows().setInternalArray(newMatrix.toArray2()[0]);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

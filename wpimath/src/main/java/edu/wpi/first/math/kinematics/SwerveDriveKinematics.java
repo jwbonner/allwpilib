@@ -9,8 +9,12 @@ import edu.wpi.first.math.MathUsageId;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.proto.Geometry2D.ProtobufTranslation2d;
+import edu.wpi.first.math.proto.Kinematics.ProtobufSwerveDriveKinematics;
+import edu.wpi.first.util.protobuf.Protobuf;
 import java.util.Arrays;
 import org.ejml.simple.SimpleMatrix;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /**
  * Helper class that converts a chassis velocity (dx, dy, and dtheta components) into individual
@@ -348,4 +352,42 @@ public class SwerveDriveKinematics
       moduleState.speedMetersPerSecond *= scale;
     }
   }
+
+  public static final class AProto
+      implements Protobuf<SwerveDriveKinematics, ProtobufSwerveDriveKinematics> {
+    @Override
+    public Class<SwerveDriveKinematics> getTypeClass() {
+      return SwerveDriveKinematics.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufSwerveDriveKinematics.getDescriptor();
+    }
+
+    @Override
+    public ProtobufSwerveDriveKinematics createMessage() {
+      return ProtobufSwerveDriveKinematics.newInstance();
+    }
+
+    @Override
+    public SwerveDriveKinematics unpack(ProtobufSwerveDriveKinematics msg) {
+      Translation2d[] modules = new Translation2d[msg.getModules().length()];
+      for (int i = 0; i < modules.length; i++) {
+        modules[i] = Translation2d.proto.unpack(msg.getModules().get(i));
+      }
+      return new SwerveDriveKinematics(modules);
+    }
+
+    @Override
+    public void pack(ProtobufSwerveDriveKinematics msg, SwerveDriveKinematics value) {
+      ProtobufTranslation2d[] modules = new ProtobufTranslation2d[value.m_numModules];
+      for (int i = 0; i < modules.length; i++) {
+        Translation2d.proto.pack(modules[i], value.m_modules[i]);
+      }
+      msg.getMutableModules().addAll(modules);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

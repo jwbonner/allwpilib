@@ -4,11 +4,18 @@
 
 package edu.wpi.first.math.spline;
 
+import edu.wpi.first.math.proto.Spline.ProtobufQuinticHermiteSpline;
+import edu.wpi.first.util.protobuf.Protobuf;
 import org.ejml.simple.SimpleMatrix;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 public class QuinticHermiteSpline extends Spline {
   private static SimpleMatrix hermiteBasis;
   private final SimpleMatrix m_coefficients;
+  private final double[] m_xInitialControlVector;
+  private final double[] m_xFinalControlVector;
+  private final double[] m_yInitialControlVector;
+  private final double[] m_yFinalControlVector;
 
   /**
    * Constructs a quintic hermite spline with the specified control vectors. Each control vector
@@ -25,6 +32,10 @@ public class QuinticHermiteSpline extends Spline {
       double[] yInitialControlVector,
       double[] yFinalControlVector) {
     super(5);
+    m_xInitialControlVector = xInitialControlVector;
+    m_xFinalControlVector = xFinalControlVector;
+    m_yInitialControlVector = yInitialControlVector;
+    m_yFinalControlVector = yFinalControlVector;
 
     // Populate the coefficients for the actual spline equations.
     // Row 0 is x coefficients
@@ -141,4 +152,42 @@ public class QuinticHermiteSpline extends Spline {
           finalVector[0], finalVector[1], finalVector[2]
         });
   }
+
+  public static final class AProto
+      implements Protobuf<QuinticHermiteSpline, ProtobufQuinticHermiteSpline> {
+    @Override
+    public Class<QuinticHermiteSpline> getTypeClass() {
+      return QuinticHermiteSpline.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufQuinticHermiteSpline.getDescriptor();
+    }
+
+    @Override
+    public ProtobufQuinticHermiteSpline createMessage() {
+      return ProtobufQuinticHermiteSpline.newInstance();
+    }
+
+    @Override
+    public QuinticHermiteSpline unpack(ProtobufQuinticHermiteSpline msg) {
+      double[] xInitialControlVector = msg.getXInitial().array();
+      double[] xFinalControlVector = msg.getXFinal().array();
+      double[] yInitialControlVector = msg.getYInitial().array();
+      double[] yFinalControlVector = msg.getYFinal().array();
+      return new QuinticHermiteSpline(
+          xInitialControlVector, xFinalControlVector, yInitialControlVector, yFinalControlVector);
+    }
+
+    @Override
+    public void pack(ProtobufQuinticHermiteSpline msg, QuinticHermiteSpline value) {
+      msg.getMutableXInitial().setInternalArray(value.m_xInitialControlVector);
+      msg.getMutableXFinal().setInternalArray(value.m_xFinalControlVector);
+      msg.getMutableYInitial().setInternalArray(value.m_yInitialControlVector);
+      msg.getMutableYFinal().setInternalArray(value.m_yFinalControlVector);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

@@ -7,6 +7,9 @@ package edu.wpi.first.math.system;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Num;
 import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.proto.System.ProtobufLinearSystem;
+import edu.wpi.first.util.protobuf.Protobuf;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 public class LinearSystem<States extends Num, Inputs extends Num, Outputs extends Num> {
   /** Continuous system matrix. */
@@ -190,4 +193,45 @@ public class LinearSystem<States extends Num, Inputs extends Num, Outputs extend
         "Linear System: A\n%s\n\nB:\n%s\n\nC:\n%s\n\nD:\n%s\n",
         m_A.toString(), m_B.toString(), m_C.toString(), m_D.toString());
   }
+
+  @SuppressWarnings("rawtypes")
+  public static final class AProto implements Protobuf<LinearSystem, ProtobufLinearSystem> {
+    @Override
+    public Class<LinearSystem> getTypeClass() {
+      return LinearSystem.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufLinearSystem.getDescriptor();
+    }
+
+    @Override
+    public ProtobufLinearSystem createMessage() {
+      return ProtobufLinearSystem.newInstance();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public LinearSystem unpack(ProtobufLinearSystem msg) {
+      Matrix a = Matrix.proto.unpack(msg.getA());
+      Matrix b = Matrix.proto.unpack(msg.getB());
+      Matrix c = Matrix.proto.unpack(msg.getC());
+      Matrix d = Matrix.proto.unpack(msg.getD());
+      return new LinearSystem(a, b, c, d);
+    }
+
+    @Override
+    public void pack(ProtobufLinearSystem msg, LinearSystem value) {
+      msg.setNumStates(value.m_A.getNumRows())
+          .setNumInputs(value.m_B.getNumCols())
+          .setNumOutputs(value.m_C.getNumRows());
+      Matrix.proto.pack(msg.getMutableA(), value.m_A);
+      Matrix.proto.pack(msg.getMutableB(), value.m_B);
+      Matrix.proto.pack(msg.getMutableC(), value.m_C);
+      Matrix.proto.pack(msg.getMutableD(), value.m_D);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

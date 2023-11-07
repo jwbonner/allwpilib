@@ -6,7 +6,12 @@ package edu.wpi.first.math.controller;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.proto.Controller.ProtobufSimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /** A helper class that computes feedforward outputs for a simple permanent-magnet DC motor. */
 public class SimpleMotorFeedforward {
@@ -139,4 +144,73 @@ public class SimpleMotorFeedforward {
   public double minAchievableAcceleration(double maxVoltage, double velocity) {
     return maxAchievableAcceleration(-maxVoltage, velocity);
   }
+
+  public static final class AStruct implements Struct<SimpleMotorFeedforward> {
+    @Override
+    public Class<SimpleMotorFeedforward> getTypeClass() {
+      return SimpleMotorFeedforward.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:SimpleMotorFeedforward";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble * 3;
+    }
+
+    @Override
+    public String getSchema() {
+      return "double ks;double kv;double ka";
+    }
+
+    @Override
+    public SimpleMotorFeedforward unpack(ByteBuffer bb) {
+      double ks = bb.getDouble();
+      double kv = bb.getDouble();
+      double ka = bb.getDouble();
+      return new SimpleMotorFeedforward(ks, kv, ka);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, SimpleMotorFeedforward value) {
+      bb.putDouble(value.ks);
+      bb.putDouble(value.kv);
+      bb.putDouble(value.ka);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto
+      implements Protobuf<SimpleMotorFeedforward, ProtobufSimpleMotorFeedforward> {
+    @Override
+    public Class<SimpleMotorFeedforward> getTypeClass() {
+      return SimpleMotorFeedforward.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufSimpleMotorFeedforward.getDescriptor();
+    }
+
+    @Override
+    public ProtobufSimpleMotorFeedforward createMessage() {
+      return ProtobufSimpleMotorFeedforward.newInstance();
+    }
+
+    @Override
+    public SimpleMotorFeedforward unpack(ProtobufSimpleMotorFeedforward msg) {
+      return new SimpleMotorFeedforward(msg.getKs(), msg.getKv(), msg.getKa());
+    }
+
+    @Override
+    public void pack(ProtobufSimpleMotorFeedforward msg, SimpleMotorFeedforward value) {
+      msg.setKs(value.ks).setKv(value.kv).setKa(value.ka);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }

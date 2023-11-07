@@ -7,7 +7,12 @@ package edu.wpi.first.math.kinematics;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.Interpolatable;
+import edu.wpi.first.math.proto.Kinematics.ProtobufSwerveModulePosition;
+import edu.wpi.first.util.protobuf.Protobuf;
+import edu.wpi.first.util.struct.Struct;
+import java.nio.ByteBuffer;
 import java.util.Objects;
+import us.hebi.quickbuf.Descriptors.Descriptor;
 
 /** Represents the state of one swerve module. */
 public class SwerveModulePosition
@@ -79,4 +84,82 @@ public class SwerveModulePosition
         MathUtil.interpolate(this.distanceMeters, endValue.distanceMeters, t),
         this.angle.interpolate(endValue.angle, t));
   }
+
+  public static final class AStruct implements Struct<SwerveModulePosition> {
+    @Override
+    public Class<SwerveModulePosition> getTypeClass() {
+      return SwerveModulePosition.class;
+    }
+
+    @Override
+    public String getTypeString() {
+      return "struct:SwerveModulePosition";
+    }
+
+    @Override
+    public int getSize() {
+      return kSizeDouble + Rotation2d.struct.getSize();
+    }
+
+    @Override
+    public String getSchema() {
+      return "double distance;Rotation2d angle";
+    }
+
+    @Override
+    public Struct<?>[] getNested() {
+      return new Struct<?>[] {Rotation2d.struct};
+    }
+
+    @Override
+    public SwerveModulePosition unpack(ByteBuffer bb) {
+      double distance = bb.getDouble();
+      Rotation2d angle = Rotation2d.struct.unpack(bb);
+      return new SwerveModulePosition(distance, angle);
+    }
+
+    @Override
+    public void pack(ByteBuffer bb, SwerveModulePosition value) {
+      bb.putDouble(value.distanceMeters);
+      Rotation2d.struct.pack(bb, value.angle);
+    }
+  }
+
+  public static final AStruct struct = new AStruct();
+
+  public static final class AProto
+      implements Protobuf<SwerveModulePosition, ProtobufSwerveModulePosition> {
+    @Override
+    public Class<SwerveModulePosition> getTypeClass() {
+      return SwerveModulePosition.class;
+    }
+
+    @Override
+    public Descriptor getDescriptor() {
+      return ProtobufSwerveModulePosition.getDescriptor();
+    }
+
+    @Override
+    public Protobuf<?, ?>[] getNested() {
+      return new Protobuf<?, ?>[] {Rotation2d.proto};
+    }
+
+    @Override
+    public ProtobufSwerveModulePosition createMessage() {
+      return ProtobufSwerveModulePosition.newInstance();
+    }
+
+    @Override
+    public SwerveModulePosition unpack(ProtobufSwerveModulePosition msg) {
+      return new SwerveModulePosition(msg.getDistance(), Rotation2d.proto.unpack(msg.getAngle()));
+    }
+
+    @Override
+    public void pack(ProtobufSwerveModulePosition msg, SwerveModulePosition value) {
+      msg.setDistance(value.distanceMeters);
+      Rotation2d.proto.pack(msg.getMutableAngle(), value.angle);
+    }
+  }
+
+  public static final AProto proto = new AProto();
 }
