@@ -15,7 +15,6 @@ import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUsageId;
 import edu.wpi.first.networktables.MultiSubscriber;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.util.WPILibVersion;
@@ -118,7 +117,7 @@ public abstract class RobotBase implements AutoCloseable {
 
           @Override
           public double getTimestamp() {
-            return WPIUtilJNI.now() * 1.0e-6;
+            return Timer.getFPGATimestamp();
           }
         });
   }
@@ -438,8 +437,10 @@ public abstract class RobotBase implements AutoCloseable {
       runRobot(robotSupplier);
     }
 
-    // On RIO, this will just terminate rather than shutting down cleanly (it's a no-op in sim).
-    // It's not worth the risk of hanging on shutdown when we want the code to restart as quickly
+    // On RIO, this will just terminate rather than shutting down cleanly (it's a
+    // no-op in sim).
+    // It's not worth the risk of hanging on shutdown when we want the code to
+    // restart as quickly
     // as possible.
     HAL.terminate();
 

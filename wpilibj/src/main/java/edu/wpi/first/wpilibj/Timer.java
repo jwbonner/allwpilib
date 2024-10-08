@@ -4,6 +4,8 @@
 
 package edu.wpi.first.wpilibj;
 
+import java.util.function.LongSupplier;
+
 /**
  * A timer class.
  *
@@ -11,6 +13,17 @@ package edu.wpi.first.wpilibj;
  * get() won't return a negative duration.
  */
 public class Timer {
+  private static LongSupplier m_timestampSupplier = RobotController::getFPGATime;
+
+  /**
+   * Sets a new source to provide the system clock time in microseconds. Changing this affects the
+   * return value of {@code getFPGATimestamp} in Java. Do not use this method unless you know what
+   * you are doing.
+   */
+  public static void setTimestampSupplier(LongSupplier supplier) {
+    m_timestampSupplier = supplier;
+  }
+
   /**
    * Return the system clock time in seconds. Return the time from the FPGA hardware clock in
    * seconds since the FPGA started.
@@ -18,7 +31,7 @@ public class Timer {
    * @return Robot running time in seconds.
    */
   public static double getFPGATimestamp() {
-    return RobotController.getFPGATime() / 1000000.0;
+    return m_timestampSupplier.getAsLong() / 1000000.0;
   }
 
   /**
@@ -60,7 +73,7 @@ public class Timer {
   }
 
   private double getMsClock() {
-    return RobotController.getFPGATime() / 1000.0;
+    return getFPGATimestamp() / 1000.0;
   }
 
   /**
